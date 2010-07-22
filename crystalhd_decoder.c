@@ -172,6 +172,9 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 	while(!this->rec_thread_stop) {
 	
     if(!this->set_form) {
+      if(!this->use_threading) {
+        return;
+      }
       msleep(10);
       continue;
     }
