@@ -76,3 +76,4 @@ video.crystalhd_decoder.decoder_reopen:1
 # on >=50p drop every second frame. This is a hack for slow gfx cards.
 video.crystalhd_decoder.decoder_25p_drop:1
 
+
