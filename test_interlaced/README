@@ -1,0 +1,59 @@
+Prequirements :
+
+xine-lib-1.2
+
+Get crystalhd driver and libs, compile and install it :
+
+  cd /usr/src
+  svn co https://archvdr.svn.sourceforge.net/svnroot/archvdr/branches/libcrystalhd
+  git clone git://git.wilsonet.com/crystalhd.git/
+  cd crystalhd
+  git checkout aed81580a42f89e1f9d9aa6047b14d74fbb994d0
+  cd driver/linux
+  autoconf
+  ./configure
+  make
+  make install
+  cd /usr/src/crystalhd/linux_lib/libcrystalhd
+  patch -p1 -i /usr/src/libcrystalhd/patches/flush_metadata_only.patch
+  make
+  make install
+  cd /usr/src/
+  depmod -a
+  modprobe crystalhd
+
+Let's check - everything is ok ? the driver is loaded ? 
+
+  ls -l /dev/crystalhd
+  crw-rw-rw- 1 root root 251, 0 2010-01-14 21:47 /dev/crystalhd
+
+Have a look in syslog :
+
+ Loading crystalhd 0.9.27 
+ PCI_INFO: Vendor:0x14e4 Device:0x1612 s_vendor:0x14e4 s_device: 0x2612
+ Broadcom 70012 Decoder 0000:02:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+ allocated 18 elem
+   alloc irq_desc for 29 on node -1
+   alloc kstat_irqs on node -1
+ Broadcom 70012 Decoder 0000:02:00.0: irq 29 for MSI/MSI-X
+ Starting BCM70012 Device
+ clock is moving to 175 with n 35 with vco_mg 2
+ CStopping BCM70012 Device
+ Broadcom 70012 Decoder 0000:02:00.0: setting latency timer to 64
+
+Let's compile Plugin libcristalhd
+
+  cd /usr/src/libcrystalhd/
+  make
+  make install
+
+Let's check again 
+
+  ls -l /usr/lib/xine/plugins/2.0/*crystalhd*
+  -rwxr-xr-x 1 root root 212700 2010-01-14 22:14 /usr/lib/xine/plugins/2.0/xineplug_decode_crystalhd.so
+
+Seems ok. After of xine-ui compiling let's start it and correct .xine/config
+  
+  engine.decoder_priorities.crystalhd_h264:1
+
+
