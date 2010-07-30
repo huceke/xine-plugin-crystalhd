@@ -8,7 +8,7 @@ Get crystalhd driver and libs, compile and install it :
   svn co https://crystalhd.svn.sourceforge.net/svnroot/crystalhd/trunk xine-plugin-crystalhd 
   git clone git://git.wilsonet.com/crystalhd.git/
   cd crystalhd
-  git checkout ec49b91ff32e87e677ba7df82a5fb71ea0ee11b2
+  git checkout 6df10a0599b5adf7e6f08529f0954a3fa24ad0ad
   cd driver/linux
   autoconf
   ./configure

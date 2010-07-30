@@ -173,7 +173,7 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 	
     if(!this->set_form) {
       if(!this->use_threading) {
-        return;
+        return NULL;
       }
       msleep(10);
       continue;
@@ -224,8 +224,8 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 							(procOut.PoutFlags & BC_POUT_FLAGS_FMT_CHANGE) ) {
 	
             // Does not work with 0.9.27
-						//this->interlaced = (procOut.PicInfo.flags & VDEC_FLAG_INTERLACED_SRC ? 1 : 0);
-						this->interlaced = (procOut.PicInfo.flags & VDEC_FLAG_FIELDPAIR ? 1 : 0);
+						this->interlaced = (procOut.PicInfo.flags & VDEC_FLAG_INTERLACED_SRC ? 1 : 0);
+						//this->interlaced = (procOut.PicInfo.flags & VDEC_FLAG_FIELDPAIR ? 1 : 0);
 	
 	       		this->width = procOut.PicInfo.width;
 						this->height = procOut.PicInfo.height;
