@@ -543,6 +543,7 @@ static void crystalhd_video_dispose (video_decoder_t *this_gen) {
 	hDevice = crystalhd_stop(this, hDevice);
 
 	crystalhd_video_clear_worker_buffers(this);
+  xine_list_delete(this->image_buffer);
 
   free(this->sequence_vc1.bytestream);
   this->sequence_vc1.bytestream_bytes = 0;
