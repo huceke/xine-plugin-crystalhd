@@ -28,6 +28,15 @@
  * crystalhd_h264 specific decode functions
  *************************************************************************/
 
+void crystalhd_h264_free_parser (crystalhd_video_decoder_t *this) {
+  if(this->completed_pic) {
+    free_coded_picture(this->completed_pic);
+    this->completed_pic = NULL;
+  }
+  free_parser(this->nal_parser);
+  this->nal_parser = NULL;
+}
+
 /*
  * This function receives a buffer of data from the demuxer layer and
  * figures out how to handle it based on its header flags.

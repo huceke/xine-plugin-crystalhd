@@ -27,5 +27,6 @@
 
 void crystalhd_h264_decode_data (video_decoder_t *this_gen,
   buf_element_t *buf);
+void crystalhd_h264_free_parser (crystalhd_video_decoder_t *this);
 
 #endif

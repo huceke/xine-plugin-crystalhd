@@ -163,7 +163,7 @@ static void crystalhd_video_render (crystalhd_video_decoder_t *this, image_buffe
 static void* crystalhd_video_rec_thread (void *this_gen) {
 	crystalhd_video_decoder_t *this = (crystalhd_video_decoder_t *) this_gen;
 
-	BC_STATUS         ret = 0;
+	BC_STATUS         ret = BC_STS_ERROR;
 	BC_DTS_STATUS     pStatus;
   BC_DTS_PROC_OUT		procOut;
 	unsigned char   	*transferbuff = NULL;
@@ -180,6 +180,7 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
     }
 
 		/* read driver status. we need the frame ready count from it */
+    memset(&pStatus, 0, sizeof(BC_DTS_STATUS));
     ret = DtsGetDriverStatus(hDevice, &pStatus);
 
 		if( ret == BC_STS_SUCCESS && pStatus.ReadyListCount) {
@@ -490,7 +491,7 @@ static void crystalhd_video_reset (video_decoder_t *this_gen) {
       crystalhd_vc1_reset_sequence( &this->sequence_vc1 );
       break;
     case BUF_VIDEO_H264:
-      free_parser(this->nal_parser);
+      crystalhd_h264_free_parser(this);
       this->nal_parser = init_parser(this->xine);
 	    if(this->extradata_size > 0) {
 		    parse_codec_private(this->nal_parser, this->extradata, this->extradata_size);
@@ -554,10 +555,7 @@ static void crystalhd_video_dispose (video_decoder_t *this_gen) {
   free( this->sequence_mpeg.picture.slices );
   free( this->sequence_mpeg.buf );
 
-  free_parser (this->nal_parser);
-  if(this->completed_pic) {
-    free_coded_picture(this->completed_pic);
-  }
+  crystalhd_h264_free_parser(this);
 
 	if( this->extradata ) {
 		free( this->extradata );
@@ -566,8 +564,8 @@ static void crystalhd_video_dispose (video_decoder_t *this_gen) {
 
   this->set_form      = 0;
 
-  free (this);
 	xprintf(this->xine, XINE_VERBOSITY_LOG, "crystalhd_video: crystalhd_video_dispose\n");
+  free (this);
 }
 
 void crystalhd_scaling_enable( void *this_gen, xine_cfg_entry_t *entry )
