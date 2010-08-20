@@ -163,7 +163,7 @@ static void crystalhd_video_render (crystalhd_video_decoder_t *this, image_buffe
 static void* crystalhd_video_rec_thread (void *this_gen) {
 	crystalhd_video_decoder_t *this = (crystalhd_video_decoder_t *) this_gen;
 
-	BC_STATUS         ret;
+	BC_STATUS         ret = 0;
 	BC_DTS_STATUS     pStatus;
   BC_DTS_PROC_OUT		procOut;
 	unsigned char   	*transferbuff = NULL;
@@ -554,6 +554,9 @@ static void crystalhd_video_dispose (video_decoder_t *this_gen) {
   free( this->sequence_mpeg.buf );
 
   free_parser (this->nal_parser);
+  if(this->completed_pic) {
+    free_coded_picture(this->completed_pic);
+  }
 
 	if( this->extradata ) {
 		free( this->extradata );
@@ -698,7 +701,9 @@ static video_decoder_t *crystalhd_video_open_plugin (video_decoder_class_t *clas
 	crystalhd_vc1_init_sequence( &this->sequence_vc1 );
 
   this->nal_parser        = init_parser(this->xine);
+  this->completed_pic     = NULL;
   this->extradata         = NULL;
+  this->extradata_size    = 0;
   this->wait_for_frame_start = 0;
 
 	this->image_buffer      = xine_list_new();
