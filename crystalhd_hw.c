@@ -137,7 +137,10 @@ void crystalhd_input_format (crystalhd_video_decoder_t *this, HANDLE hDevice, BC
   pInputFormat.MetaDataEnable = FALSE;
   //pInputFormat.Progressive = FALSE;
   pInputFormat.Progressive = TRUE;
-  pInputFormat.OptFlags = 0x80000000 | vdecFrameRate23_97 /*| 0x80*/;
+  pInputFormat.OptFlags = 0x80000000 | vdecFrameRate23_97;
+  if(!this->use_threading) {
+    pInputFormat.OptFlags  |= 0x80;
+  }
   pInputFormat.startCodeSz = startCodeSz;
   pInputFormat.mSubtype = mSubtype;
   pInputFormat.pMetaData = pMetaData;
