@@ -553,6 +553,7 @@ static void crystalhd_video_dispose (video_decoder_t *this_gen) {
   free(this->sequence_vc1.bytestream);
   this->sequence_vc1.bytestream_bytes = 0;
   this->sequence_vc1.bytestream = NULL;
+  free(this->sequence_vc1.buf);
   //crystalhd_vc1_reset_sequence( &this->sequence_vc1 );
   
   crystalhd_mpeg_free_sequence( &this->sequence_mpeg );
