@@ -156,8 +156,8 @@ static void crystalhd_video_render (crystalhd_video_decoder_t *this, image_buffe
 
   if(img != NULL && this->use_threading) {
   	free(img->image);
+    free(img);
   }
-  free(img);
 }
 
 static void* crystalhd_video_rec_thread (void *this_gen) {
@@ -281,13 +281,17 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
                 continue;
               }
 
-							image_buffer_t *img = malloc(sizeof(image_buffer_t));
+							image_buffer_t *img = NULL;
+              image_buffer_t _img;
 
 							/* allocate new image buffer and push it to the image list */
               if(this->use_threading) {
+							  img = malloc(sizeof(image_buffer_t));
 							  img->image = transferbuff;
 							  img->image_bytes = procOut.YbuffSz;
               } else {
+                memset(&_img, 0 , sizeof(image_buffer_t));
+                img = &_img;
 							  img->image = procOut.Ybuff;
 							  img->image_bytes = procOut.YBuffDoneSz;
               }

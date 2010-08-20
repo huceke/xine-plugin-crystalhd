@@ -129,6 +129,7 @@ void crystalhd_h264_decode_data (video_decoder_t *this_gen,
 
       if(this->completed_pic) {
         free_coded_picture(this->completed_pic);
+        this->completed_pic = NULL;
       }
 
       /*
