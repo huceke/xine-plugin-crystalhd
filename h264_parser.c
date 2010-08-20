@@ -1606,6 +1606,9 @@ void free_parser(struct h264_parser *parser)
   free_nal_buffer(parser->pps_buffer);
   free_nal_buffer(parser->sps_buffer);
   free(parser->nal_size_length_buf);
+  if(parser->pic != NULL) {
+    free_coded_picture(parser->pic);
+  }
   free(parser);
 }
 
