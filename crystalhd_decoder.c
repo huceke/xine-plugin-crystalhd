@@ -156,8 +156,8 @@ static void crystalhd_video_render (crystalhd_video_decoder_t *this, image_buffe
 
   if(img != NULL && this->use_threading) {
   	free(img->image);
- 	  free(img);
   }
+  free(img);
 }
 
 static void* crystalhd_video_rec_thread (void *this_gen) {
@@ -167,7 +167,7 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 	BC_DTS_STATUS     pStatus;
   BC_DTS_PROC_OUT		procOut;
 	unsigned char   	*transferbuff = NULL;
-	int								decoder_timeout = 20;
+	int								decoder_timeout = 16;
 
 	while(!this->rec_thread_stop) {
 	
@@ -186,34 +186,33 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 
 			memset(&procOut, 0, sizeof(BC_DTS_PROC_OUT));
 
-			/* setup frame transfer structure */
-			procOut.PicInfo.width = this->width;
-			procOut.PicInfo.height = this->height;
-			procOut.YbuffSz = this->y_size/4;
-			procOut.UVbuffSz = this->uv_size/4;
-			procOut.PoutFlags = BC_POUT_FLAGS_SIZE;
-	
-			procOut.PicInfo.picture_number = 0;
-	
-			if(transferbuff == NULL) {
-				transferbuff = malloc(this->y_size);
-				//transferbuff = malloc(1920*1088*2);
-			}
-			procOut.Ybuff = transferbuff;
+		  if(this->interlaced) {
+			  procOut.PoutFlags |= BC_POUT_FLAGS_INTERLACED;
+		  }
+      procOut.b422Mode = OUTPUT_MODE422_YUY2;
 
-			if(this->interlaced) {
-				procOut.PoutFlags |= BC_POUT_FLAGS_INTERLACED;
-			}
-
-			procOut.PoutFlags = procOut.PoutFlags & 0xff;
+      if(this->use_threading) {
+			
+        /* setup frame transfer structure */
+			  procOut.PicInfo.width = this->width;
+			  procOut.PicInfo.height = this->height;
+			  procOut.YbuffSz = this->y_size/4;
+			  procOut.UVbuffSz = this->uv_size/4;
+			  procOut.PoutFlags = BC_POUT_FLAGS_SIZE;
 	
-			ret = DtsProcOutput(hDevice, decoder_timeout, &procOut);
-
-      //fprintf(stderr, "decode fetch\n");
+			  procOut.PicInfo.picture_number = 0;
 	
-      /*
-			ret = DtsProcOutputNoCopy(hDevice, decoder_timeout, &procOut);
-      */
+			  if(transferbuff == NULL) {
+				  transferbuff = malloc(this->y_size);
+		  	}
+			  procOut.Ybuff = transferbuff;
+
+			  procOut.PoutFlags = procOut.PoutFlags & 0xff;
+	
+  			ret = DtsProcOutput(hDevice, decoder_timeout, &procOut);
+      } else {	
+  			ret = DtsProcOutputNoCopy(hDevice, decoder_timeout, &procOut);
+      }
 
 			/* print statistics */
 			switch (ret) {
@@ -239,11 +238,9 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 
 						this->uv_size = 0;
 	
-						decoder_timeout = 2000;
+						decoder_timeout = 16;
 				
 						this->ratio = set_ratio(this->width, this->height, procOut.PicInfo.aspect_ratio);
-						//this->video_step = set_video_step(procOut.PicInfo.frame_rate);
-            //xprintf(this->xine, XINE_VERBOSITY_NONE,"frame_rate %d\n", procOut.PicInfo.frame_rate);            
             set_video_params(this);
 	   	   	}
 					break;
@@ -257,11 +254,12 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
             if((procOut.PicInfo.picture_number - this->last_image) > 0 ) {
 
               if(this->extra_logging) {
-                fprintf(stderr,"ReadyListCount %d FreeListCount %d PIBMissCount %d picture_number %d gap %d tiemStamp %" PRId64 "\n",
+                fprintf(stderr,"ReadyListCount %d FreeListCount %d PIBMissCount %d picture_number %d gap %d tiemStamp %" PRId64 " YbuffSz %d YBuffDoneSz %d\n",
 									pStatus.ReadyListCount, pStatus.FreeListCount, pStatus.PIBMissCount, 
 									procOut.PicInfo.picture_number, 
 									procOut.PicInfo.picture_number - this->last_image,
-                  procOut.PicInfo.timeStamp);
+                  procOut.PicInfo.timeStamp,
+                  procOut.YbuffSz, procOut.YBuffDoneSz);
               }
 
               if((procOut.PicInfo.picture_number - this->last_image) > 1) {
@@ -282,15 +280,17 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
                 continue;
               }
 
-							/* allocate new image buffer and push it to the image list */
 							image_buffer_t *img = malloc(sizeof(image_buffer_t));
-							
 
-							//img->image = malloc(procOut.YbuffSz);
-              //memcpy(img->image, procOut.Ybuff, procOut.YbuffSz);
+							/* allocate new image buffer and push it to the image list */
+              if(this->use_threading) {
+							  img->image = transferbuff;
+							  img->image_bytes = procOut.YbuffSz;
+              } else {
+							  img->image = procOut.Ybuff;
+							  img->image_bytes = procOut.YBuffDoneSz;
+              }
 
-							img->image = transferbuff;
-							img->image_bytes = procOut.YbuffSz;
 							img->width = this->width;
 							img->height = this->height;
 							img->pts = procOut.PicInfo.timeStamp;
@@ -311,7 +311,9 @@ static void* crystalhd_video_rec_thread (void *this_gen) {
 
 						}
 					}
-          //DtsReleaseOutputBuffs(hDevice, NULL, FALSE);
+          if(!this->use_threading) {
+            DtsReleaseOutputBuffs(hDevice, NULL, FALSE);
+          }
 					break;
         case BC_STS_DEC_NOT_OPEN:
         case BC_STS_DEC_NOT_STARTED:
