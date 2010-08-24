@@ -273,7 +273,7 @@ uint64_t set_video_step(uint32_t frame_rate) {
 
   uint64_t video_step;
 
-#if DIL_MINOR_VERSION == 5 && DIL_REVISION >= 0
+  /*
   switch(frame_rate) {
     case vdecFrameRate23_97:
     case 23970:
@@ -320,7 +320,7 @@ uint64_t set_video_step(uint32_t frame_rate) {
 			video_step = 90000/23.976;
       break;
   }
-#else
+  */
 	switch(frame_rate) {
 		case vdecRESOLUTION_720p:
 		case vdecRESOLUTION_576p:
@@ -386,7 +386,6 @@ uint64_t set_video_step(uint32_t frame_rate) {
 			video_step = 90000/25;
 			break;
 	}
-#endif
 
   return video_step;
 }

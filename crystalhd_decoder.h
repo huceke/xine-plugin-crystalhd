@@ -46,8 +46,6 @@
 
 #include <semaphore.h>
 
-#include "config.h"
-
 #include "bits_reader.h"
 
 #include "cpb.h"

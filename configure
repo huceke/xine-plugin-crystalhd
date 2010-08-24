@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ -e /usr/include/libcrystalhd/libcrystalhd_version.h ]; then
-  echo "#include <libcrystalhd_version.h>" > config.h
-else
-  echo "" > config.h
-  echo "#define DIL_MINOR_VERSION 4" >> config.h
-  echo "#define DIL_REVISION      0"  >> config.h
-fi
