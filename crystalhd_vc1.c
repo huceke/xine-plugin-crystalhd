@@ -149,7 +149,8 @@ void crystalhd_vc1_handle_buffer (crystalhd_video_decoder_t *this,
       if(!this->set_form && hDevice) {
         this->set_form = 1;
         hDevice = crystalhd_start(this, hDevice, BC_STREAM_TYPE_ES, BC_VID_ALGO_VC1MP, 1, 
-            sequence->bytestream, sequence->bytestream_bytes, 0, 0, this->scaling_enable, this->scaling_width);
+            sequence->bytestream, sequence->bytestream_bytes, 0, 0,
+            this->scaling_enable, this->scaling_width);
       }
       buf_len = bytestream_bytes;
 
@@ -162,7 +163,7 @@ void crystalhd_vc1_handle_buffer (crystalhd_video_decoder_t *this,
   } else if (sequence->profile == PROFILE_VC1_MAIN) {
 
     if(sequence->have_header) {
-
+      
       if(!this->set_form && hDevice) {
 
         hDevice = crystalhd_start(this, hDevice, BC_STREAM_TYPE_ES, BC_VID_ALGO_VC1MP, 0,
@@ -171,16 +172,13 @@ void crystalhd_vc1_handle_buffer (crystalhd_video_decoder_t *this,
 
         this->set_form = 1;
 
+        buf_len = bytestream_bytes;
+
       }
-
-      buf_len = bytestream_bytes;
-
     }
-
   }
 
   memcpy(p, bytestream, bytestream_bytes);
-
   //crystalhd_decode_package(buf, 20);
 
   if(this->set_form) {
@@ -453,7 +451,7 @@ void parse_header( crystalhd_video_decoder_t *this, uint8_t *buf, int len )
           sequence->bytestream_bytes = len-off;
           sequence->bytestream = realloc( sequence->bytestream, sequence->bytestream_bytes );
           memcpy(sequence->bytestream, buf+off, sequence->bytestream_bytes);
-
+          
           break;
       }
     }
@@ -630,11 +628,6 @@ void crystalhd_vc1_decode_data (video_decoder_t *this_gen,
     //lprintf("BUF_FLAG_HEADER\n");
   }
 
-  if (buf->decoder_flags & BUF_FLAG_FRAME_START) {
-    //lprintf("BUF_FLAG_FRAME_START\n");
-    seq->seq_pts = buf->pts;
-  }
-
   seq->cur_pts = buf->pts;
 
 	if(buf->decoder_flags & BUF_FLAG_STDHEADER) {
@@ -660,45 +653,59 @@ void crystalhd_vc1_decode_data (video_decoder_t *this_gen,
   xine_fast_memcpy( seq->buf+seq->bufpos, buf->content, buf->size );
   seq->bufpos += buf->size;
 
+  if (buf->decoder_flags & BUF_FLAG_FRAME_START) {
+    //lprintf("BUF_FLAG_FRAME_START\n");
+    seq->seq_pts = buf->pts;
+    seq->mode = MODE_FRAME;
+    if ( seq->bufpos > 3 ) {
+      if ( seq->buf[0]==0 && seq->buf[1]==0 && seq->buf[2]==1 ) {
+        seq->mode = MODE_STARTCODE;
+      }
+    }
+  }
+
   if ( seq->mode == MODE_FRAME ) {
-    if (buf->decoder_flags & BUF_FLAG_FRAME_END) {
-      decode_picture(this);
+    if ( buf->decoder_flags & BUF_FLAG_FRAME_END ) {
+      //lprintf("BUF_FLAG_FRAME_END\n");
+      decode_picture( this );
       seq->bufpos = 0;
     }
-  } else {
-    int res;
-    while ( seq->bufseek <= seq->bufpos-4 ) {
-      uint8_t *buffer = seq->buf+seq->bufseek;
-      if ( buffer[0]==0 && buffer[1]==0 && buffer[2]==1 ) {
+    return;
+  }
 
-        seq->current_code = buffer[3];
-        //lprintf("current_code = %d\n", seq->current_code);
-        if ( seq->start<0 ) {
-          seq->start = seq->bufseek;
-          seq->code_start = buffer[3];
-          //lprintf("code_start = %d\n", seq->code_start);
-          if ( seq->cur_pts ) {
-            seq->seq_pts = seq->cur_pts;
-          }
-        } else {
-          res = parse_code( this, seq->buf+seq->start, seq->bufseek-seq->start );
-          if ( res==1 ) {
-            decode_picture(this);
-            parse_code( this, seq->buf+seq->start, seq->bufseek-seq->start );
-          }
-          if ( res!=-1 ) {
-            uint8_t *tmp = (uint8_t*)malloc(seq->bufsize);
-            xine_fast_memcpy( tmp, seq->buf+seq->bufseek, seq->bufpos-seq->bufseek );
-            seq->bufpos -= seq->bufseek;
-            seq->start = -1;
-            seq->bufseek = -1;
-            free( seq->buf );
-            seq->buf = tmp;
-          }
+  int res, startcode=0;
+  while ( seq->bufseek <= seq->bufpos-4 ) {
+    uint8_t *buffer = seq->buf+seq->bufseek;
+    if ( buffer[0]==0 && buffer[1]==0 && buffer[2]==1 ) {
+      startcode = 1;
+      seq->current_code = buffer[3];
+      //lprintf("current_code = %d\n", seq->current_code);
+      if ( seq->start<0 ) {
+        seq->start = seq->bufseek;
+        seq->code_start = buffer[3];
+        //lprintf("code_start = %d\n", seq->code_start);
+        if ( seq->cur_pts ) {
+          seq->seq_pts = seq->cur_pts;
+        }
+      } else {
+        res = parse_code( this, seq->buf+seq->start, seq->bufseek-seq->start );
+        if ( res==1 ) {
+          seq->mode = MODE_STARTCODE;
+          decode_picture(this);
+          parse_code( this, seq->buf+seq->start, seq->bufseek-seq->start );
+        }
+        if ( res!=-1 ) {
+          uint8_t *tmp = (uint8_t*)malloc(seq->bufsize);
+          xine_fast_memcpy( tmp, seq->buf+seq->bufseek, seq->bufpos-seq->bufseek );
+          seq->bufpos -= seq->bufseek;
+          seq->start = -1;
+          seq->bufseek = -1;
+          free( seq->buf );
+          seq->buf = tmp;
         }
       }
-      ++seq->bufseek;
     }
+    ++seq->bufseek;
   }
 }
 
