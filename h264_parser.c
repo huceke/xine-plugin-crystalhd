@@ -135,7 +135,7 @@ static void decode_nal(uint8_t **ret, int *len_ret, uint8_t *buf, int buf_len)
 static inline void dump_bits(const char *label, const struct buf_reader *buf, int bits)
 {
   struct buf_reader lbuf;
-  memcpy(&lbuf, buf, sizeof(struct buf_reader));
+  xine_fast_memcpy(&lbuf, buf, sizeof(struct buf_reader));
 
   int i;
   printf("%s: 0b", label);
@@ -448,7 +448,7 @@ void parse_scaling_list(struct buf_reader *buf, uint8_t *scaling_list,
         for(i = 0; i < sizeof(default_4x4_intra); i++) {
           scaling_list[zigzag_4x4[i]] = default_4x4_intra[i];
         }
-        //memcpy(scaling_list, default_4x4_intra, sizeof(default_4x4_intra));
+        //xine_fast_memcpy(scaling_list, default_4x4_intra, sizeof(default_4x4_intra));
         break;
       }
       case 3:
@@ -457,21 +457,21 @@ void parse_scaling_list(struct buf_reader *buf, uint8_t *scaling_list,
         for(i = 0; i < sizeof(default_4x4_inter); i++) {
           scaling_list[zigzag_4x4[i]] = default_4x4_inter[i];
         }
-        //memcpy(scaling_list, default_4x4_inter, sizeof(default_4x4_inter));
+        //xine_fast_memcpy(scaling_list, default_4x4_inter, sizeof(default_4x4_inter));
         break;
       }
       case 6: {
         for(i = 0; i < sizeof(default_8x8_intra); i++) {
           scaling_list[zigzag_8x8[i]] = default_8x8_intra[i];
         }
-        //memcpy(scaling_list, default_8x8_intra, sizeof(default_8x8_intra));
+        //xine_fast_memcpy(scaling_list, default_8x8_intra, sizeof(default_8x8_intra));
         break;
       }
       case 7: {
         for(i = 0; i < sizeof(default_8x8_inter); i++) {
           scaling_list[zigzag_8x8[i]] = default_8x8_inter[i];
         }
-        //memcpy(scaling_list, default_8x8_inter, sizeof(default_8x8_inter));
+        //xine_fast_memcpy(scaling_list, default_8x8_inter, sizeof(default_8x8_inter));
         break;
       }
     }
@@ -486,34 +486,34 @@ static void sps_scaling_list_fallback(struct seq_parameter_set_rbsp *sps, int i)
       for(j = 0; j < sizeof(default_4x4_intra); j++) {
         sps->scaling_lists_4x4[i][zigzag_4x4[j]] = default_4x4_intra[j];
       }
-      //memcpy(sps->scaling_lists_4x4[i], default_4x4_intra, sizeof(sps->scaling_lists_4x4[i]));
+      //xine_fast_memcpy(sps->scaling_lists_4x4[i], default_4x4_intra, sizeof(sps->scaling_lists_4x4[i]));
       break;
     }
     case 3: {
       for(j = 0; j < sizeof(default_4x4_inter); j++) {
         sps->scaling_lists_4x4[i][zigzag_4x4[j]] = default_4x4_inter[j];
       }
-      //memcpy(sps->scaling_lists_4x4[i], default_4x4_inter, sizeof(sps->scaling_lists_4x4[i]));
+      //xine_fast_memcpy(sps->scaling_lists_4x4[i], default_4x4_inter, sizeof(sps->scaling_lists_4x4[i]));
       break;
     }
     case 1:
     case 2:
     case 4:
     case 5:
-      memcpy(sps->scaling_lists_4x4[i], sps->scaling_lists_4x4[i-1], sizeof(sps->scaling_lists_4x4[i]));
+      xine_fast_memcpy(sps->scaling_lists_4x4[i], sps->scaling_lists_4x4[i-1], sizeof(sps->scaling_lists_4x4[i]));
       break;
     case 6: {
       for(j = 0; j < sizeof(default_8x8_intra); j++) {
         sps->scaling_lists_8x8[i-6][zigzag_8x8[j]] = default_8x8_intra[j];
       }
-      //memcpy(sps->scaling_lists_8x8[i-6], default_8x8_intra, sizeof(sps->scaling_lists_8x8[i-6]));
+      //xine_fast_memcpy(sps->scaling_lists_8x8[i-6], default_8x8_intra, sizeof(sps->scaling_lists_8x8[i-6]));
       break;
     }
     case 7: {
       for(j = 0; j < sizeof(default_8x8_inter); j++) {
         sps->scaling_lists_8x8[i-6][zigzag_8x8[j]] = default_8x8_inter[j];
       }
-      //memcpy(sps->scaling_lists_8x8[i-6], default_8x8_inter, sizeof(sps->scaling_lists_8x8[i-6]));
+      //xine_fast_memcpy(sps->scaling_lists_8x8[i-6], default_8x8_inter, sizeof(sps->scaling_lists_8x8[i-6]));
       break;
     }
 
@@ -525,17 +525,17 @@ static void pps_scaling_list_fallback(struct seq_parameter_set_rbsp *sps, struct
   switch (i) {
     case 0:
     case 3:
-      memcpy(pps->scaling_lists_4x4[i], sps->scaling_lists_4x4[i], sizeof(pps->scaling_lists_4x4[i]));
+      xine_fast_memcpy(pps->scaling_lists_4x4[i], sps->scaling_lists_4x4[i], sizeof(pps->scaling_lists_4x4[i]));
       break;
     case 1:
     case 2:
     case 4:
     case 5:
-      memcpy(pps->scaling_lists_4x4[i], pps->scaling_lists_4x4[i-1], sizeof(pps->scaling_lists_4x4[i]));
+      xine_fast_memcpy(pps->scaling_lists_4x4[i], pps->scaling_lists_4x4[i-1], sizeof(pps->scaling_lists_4x4[i]));
       break;
     case 6:
     case 7:
-      memcpy(pps->scaling_lists_8x8[i-6], sps->scaling_lists_8x8[i-6], sizeof(pps->scaling_lists_8x8[i-6]));
+      xine_fast_memcpy(pps->scaling_lists_8x8[i-6], sps->scaling_lists_8x8[i-6], sizeof(pps->scaling_lists_8x8[i-6]));
       break;
 
   }
@@ -1003,9 +1003,9 @@ void interpret_pps(struct coded_picture *pic)
   }
 
   if (!pps->pic_scaling_matrix_present_flag && sps != NULL) {
-    memcpy(pps->scaling_lists_4x4, sps->scaling_lists_4x4,
+    xine_fast_memcpy(pps->scaling_lists_4x4, sps->scaling_lists_4x4,
         sizeof(pps->scaling_lists_4x4));
-    memcpy(pps->scaling_lists_8x8, sps->scaling_lists_8x8,
+    xine_fast_memcpy(pps->scaling_lists_8x8, sps->scaling_lists_8x8,
         sizeof(pps->scaling_lists_8x8));
   }
 }

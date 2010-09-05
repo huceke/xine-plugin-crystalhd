@@ -227,6 +227,7 @@ typedef struct crystalhd_video_decoder_s {
 typedef uint32_t BCM_STREAM_TYPE;
 typedef uint32_t BCM_VIDEO_ALGO;
 
+void *crystalhd_video_rec_thread (void *this_gen);
 void crystalhd_decode_package (uint8_t *buf, uint32_t size);
 void set_video_params (crystalhd_video_decoder_t *this);
 

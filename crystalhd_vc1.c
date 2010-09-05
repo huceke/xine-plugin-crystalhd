@@ -134,7 +134,7 @@ void crystalhd_vc1_handle_buffer (crystalhd_video_decoder_t *this,
     if ((bytestream[0] == 0x00) && (bytestream[1] == 0x00) && (bytestream[2] == 0x01)) {
 
       if(sequence->bytestream_bytes) {
-        memcpy(p, sequence->bytestream, sequence->bytestream_bytes);
+        xine_fast_memcpy(p, sequence->bytestream, sequence->bytestream_bytes);
         p+=sequence->bytestream_bytes;
       }
 
@@ -178,7 +178,7 @@ void crystalhd_vc1_handle_buffer (crystalhd_video_decoder_t *this,
     }
   }
 
-  memcpy(p, bytestream, bytestream_bytes);
+  xine_fast_memcpy(p, bytestream, bytestream_bytes);
   //crystalhd_decode_package(buf, 20);
 
   if(this->set_form) {
@@ -450,7 +450,7 @@ void parse_header( crystalhd_video_decoder_t *this, uint8_t *buf, int len )
           free(sequence->bytestream);
           sequence->bytestream_bytes = len-off;
           sequence->bytestream = realloc( sequence->bytestream, sequence->bytestream_bytes );
-          memcpy(sequence->bytestream, buf+off, sequence->bytestream_bytes);
+          xine_fast_memcpy(sequence->bytestream, buf+off, sequence->bytestream_bytes);
           
           break;
       }
@@ -462,7 +462,7 @@ void parse_header( crystalhd_video_decoder_t *this, uint8_t *buf, int len )
     free(sequence->bytestream);
     sequence->bytestream_bytes = len;
     sequence->bytestream = realloc( sequence->bytestream, sequence->bytestream_bytes );
-    memcpy(sequence->bytestream, buf, sequence->bytestream_bytes);
+    xine_fast_memcpy(sequence->bytestream, buf, sequence->bytestream_bytes);
 
     sequence_header( this, buf, len );
   }
@@ -483,7 +483,7 @@ void remove_emulation_prevention( uint8_t *src, uint8_t *dst, int src_len, int *
       ++removed;
     }
     else {
-      memcpy( dst+len, src+i, 4 );
+      xine_fast_memcpy( dst+len, src+i, 4 );
       ++len;
     }
   }
@@ -520,7 +520,7 @@ int parse_code( crystalhd_video_decoder_t *this, uint8_t *buf, int len )
       free(sequence->bytestream);
       sequence->bytestream_bytes = dst_len;
       sequence->bytestream = realloc( sequence->bytestream, sequence->bytestream_bytes );
-      memcpy(sequence->bytestream, tmp, sequence->bytestream_bytes);
+      xine_fast_memcpy(sequence->bytestream, tmp, sequence->bytestream_bytes);
 
       free( tmp );
       break;
@@ -532,7 +532,7 @@ int parse_code( crystalhd_video_decoder_t *this, uint8_t *buf, int len )
           
       sequence->bytestream_bytes += dst_len;
       sequence->bytestream = realloc( sequence->bytestream, sequence->bytestream_bytes);
-      memcpy(sequence->bytestream + ( sequence->bytestream_bytes - dst_len), tmp, dst_len);
+      xine_fast_memcpy(sequence->bytestream + ( sequence->bytestream_bytes - dst_len), tmp, dst_len);
 
       free( tmp );
       break;

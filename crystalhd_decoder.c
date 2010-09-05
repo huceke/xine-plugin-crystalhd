@@ -160,7 +160,7 @@ static void crystalhd_video_render (crystalhd_video_decoder_t *this, image_buffe
   }
 }
 
-static void* crystalhd_video_rec_thread (void *this_gen) {
+void* crystalhd_video_rec_thread (void *this_gen) {
 	crystalhd_video_decoder_t *this = (crystalhd_video_decoder_t *) this_gen;
 
 	BC_STATUS         ret = BC_STS_ERROR;

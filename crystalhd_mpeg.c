@@ -416,7 +416,7 @@ void mpeg_decode_picture( crystalhd_video_decoder_t *this, uint8_t end_of_sequen
 
   lprintf("crystalhd_mpeg: slice buf len %ld\n", len);
 
-  memcpy(buf, pic->slices, len);
+  xine_fast_memcpy(buf, pic->slices, len);
 
 #define  FILEDEBUG 1
 #ifdef FILEDEBUG
