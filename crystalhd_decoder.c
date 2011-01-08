@@ -243,6 +243,7 @@ void* crystalhd_video_rec_thread (void *this_gen) {
 				
 						this->ratio = set_ratio(this->width, this->height, procOut.PicInfo.aspect_ratio);
             set_video_params(this);
+            this->last_image = 0;
 	   	   	}
 					break;
 				case BC_STS_SUCCESS:
